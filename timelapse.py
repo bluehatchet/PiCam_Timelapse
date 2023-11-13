@@ -29,33 +29,22 @@ def stop_time_lapse():
     global running
     running = False
 
-def set_interval():
-    def select_interval(n):
-        global interval
-        interval = n
+def set_interval(n):
+    global interval
+    interval = n
+    # Close any open interval selection window
+    if 'interval_popup' in globals():
         interval_popup.destroy()
 
-    # Create a new pop-up window
+def show_interval_popup():
+    # Create a new pop-up window for interval selection
+    global interval_popup
     interval_popup = Toplevel(root)
     interval_popup.title("Select Interval")
-
-    # Center the pop-up window on the screen
-    interval_popup.geometry("+%d+%d" % (root.winfo_screenwidth() / 2 - interval_popup.winfo_reqwidth() / 2,
-                                        root.winfo_screenheight() / 2 - interval_popup.winfo_reqheight() / 2))
-
-    # List of predefined intervals in seconds
     intervals = [10, 20, 30, 60, 300, 600, 1800, 3600, 14400, 86400]
-
-    # Create a button for each interval and arrange in a grid
-    for index, val in enumerate(intervals):
-        button = tk.Button(interval_popup, text=str(val), command=lambda val=val: select_interval(val))
-        button.grid(row=index // 5, column=index % 5, sticky='ew')
-
-    # Center the buttons in the pop-up window
-    interval_popup.grid_columnconfigure(0, weight=1)
-    interval_popup.grid_rowconfigure(0, weight=1)
-
-    interval_popup.grab_set()  # This makes the pop-up window modal
+    for i, val in enumerate(intervals):
+        tk.Button(interval_popup, text=str(val), command=lambda val=val: set_interval(val)).grid(row=i // 5, column=i % 5)
+    interval_popup.transient(root)  # Set to be always on top of the main window
 
 def preview():
     # Command to preview the images using libcamera
@@ -65,16 +54,14 @@ def preview():
 # GUI setup
 root = tk.Tk()
 root.title("Time-Lapse Controller")
-
-# Frame for bottom left buttons
 button_frame = tk.Frame(root)
-button_frame.pack(side=tk.LEFT, anchor='sw')
+button_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
 interval = 10  # Default interval to the first in the list
 running = False
 
 # Set interval button
-set_interval_button = tk.Button(button_frame, text="Set Interval", command=set_interval)
+set_interval_button = tk.Button(button_frame, text="Set Interval", command=show_interval_popup)
 set_interval_button.pack(side=tk.LEFT)
 
 # Start/Stop button
